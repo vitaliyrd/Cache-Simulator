@@ -1,0 +1,14 @@
+Classes:
+CPU
+Cache
+Main program
+
+CPU:
+- boolean readLocation(int location)
+- boolean writeLocation(int location, int data)
+- 
+
+Main program:
+holds instances of CPU
+loads memory trace file
+read/write based on trace file

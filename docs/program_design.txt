@@ -1,14 +1,30 @@
 Classes:
-CPU
-Cache
-Main program
+CPU - responsible for calling memory read/write operations
+Cache - responsible for returning/fetching the contents of memory
+System - responsible for calling CPU to execute instructions (in this case memory accesses)
+Main program - user front end that controls the System instance
 
 CPU:
-- boolean readLocation(int location)
-- boolean writeLocation(int location, int data)
-- 
++ L1 Instruction Cache
++ L1 Data Cache
++ L2 Cache
+- boolean readMemory(int location)
+- boolean writeMemory(int location, int data)
+
+Cache:
++ int referenceCounter
++ int misses
+- boolean locate(int location)
+- void fetch(int location)
+
+System:
++ List of the CPUs
++ L3 Cache
++ MESI Indicator for the L3 Cache
+- void traceMemory(List<Integer> traceList)
+- toString()
 
 Main program:
-holds instances of CPU
 loads memory trace file
-read/write based on trace file
+tell System read/write based on trace file
+print summary after System is done

@@ -1,7 +1,8 @@
 Classes:
 CPU - responsible for calling memory read/write operations
-Cache - responsible for returning/fetching the contents of memory
+Cache - responsible for returning/fetching the cached contents of memory
 System - responsible for calling CPU to execute instructions (in this case memory accesses)
+Memory - responsible for fetching the contents of memory
 Main program - user front end that controls the System instance
 
 CPU:
@@ -12,19 +13,31 @@ CPU:
 - boolean writeMemory(int location, int data)
 
 Cache:
-+ int referenceCounter
++ int accesses
 + int misses
++ Array of the cache contents
 - boolean locate(int location)
 - void fetch(int location)
 
 System:
-+ List of the CPUs
++ Array of the CPUs
++ Array of the memories
 + L3 Cache
 + MESI Indicator for the L3 Cache
-- void traceMemory(List<Integer> traceList)
+- void execute(enum instruction, int address)
 - toString()
 
+Memory:
++ int reads
++ int writes
++ int size (in bytes)
++ int readLatency
++ int writeLatency
+- void read(int location)
+- void write(int location)
+
 Main program:
++ System instance
 loads memory trace file
-tell System read/write based on trace file
-print summary after System is done
+execute all reads/writes based on trace file
+print summary

@@ -9,7 +9,7 @@ import java.util.List;
 public class Cache {
     private int accesses;
     private int misses;
-    private List<Integer> contents;
+    private int cache[];
 
     private int size;
     private int blockSize;
@@ -18,7 +18,7 @@ public class Cache {
     public Cache(int size, int blockSize, int latency) {
         accesses = 0;
         misses = 0;
-        contents = new ArrayList<>();
+        cache = new int[size];
 
         this.size = size;
         this.blockSize = blockSize;

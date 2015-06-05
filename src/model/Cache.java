@@ -1,7 +1,7 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
 
 /**
  * Created by Vitaliy on 6/3/15.
@@ -24,4 +24,15 @@ public class Cache {
         this.blockSize = blockSize;
         this.latency = latency;
     }
+    
+    public boolean locate(int location) {
+    	accesses++;
+    	for(int i = 0; i < size; i++) {
+    		if(cache[i] <= location && cache[i] + blockSize >= location)
+    			return true;
+    		misses++;
+    	}
+    }
+    
+    
 }

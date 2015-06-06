@@ -1,0 +1,15 @@
+offset: number of hex digits=cache line size in bytes / 16
+assumed associativity = 2 way
+bits needed for n-way associative index = log base 2 of n
+the rest of the bits are used for tag
+
+to truncate offset: shift right n / 4
+if a > 1 {
+    index = location & !(0xFFFFFFFF << Math.log(a)/Math.log(2));
+    // find first unused block in the set indicated by the index
+    // if no free block found replace via LRU
+
+} Else {
+index = location & !(0xFFFFFFFF << Math.log(cache lines)/Math.log(2));
+// just replace whatever pointed by index
+}

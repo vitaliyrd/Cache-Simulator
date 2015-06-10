@@ -32,9 +32,12 @@ public class Cache {
      */
     public boolean locate(int location) {
     	accesses++;
-
-
-
+        for(int i = 0; i < size; i++) {
+            if(false/*search*/) {
+               return true;
+            }
+        }
+        misses++;
         return false;
     }
 
@@ -44,6 +47,16 @@ public class Cache {
      * @param location The memory address to add.
      */
     public void fetch(int location) {
-
+        int index = 0; //might need this as a field
+        int offset = location >> (blockSize/4);
+        if (associativity > 1) {
+            index = offset & ~(0xFFFFFFFF << (int)(Math.log(associativity) / Math.log(2)));
+            //find first unused block in the set indicated by the index
+            //if no free block found replace via LRU
+        }
+        else {
+            index = offset & ~(0xFFFFFFFF << (int) (Math.log(size) / Math.log(2)));
+            //replace whatever pointed by index
+        }
     }
 }

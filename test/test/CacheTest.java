@@ -20,7 +20,7 @@ public class CacheTest extends TestCase {
     public void testDirectMappedCache() {
         int blocks = 512;
         int blockSize = 64;
-        int associativity = 4; //Why are we setting associativity to 4 if it's direct mapped? (Alex)
+        int associativity = 1;
         cache = new Cache(blocks, blockSize, associativity, 1);
 
         cache.fetch(0b01111101011101110001101100111000);

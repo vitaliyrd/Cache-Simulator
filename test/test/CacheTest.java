@@ -6,7 +6,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Created by Vitaliy on 6/11/15.
+ * Test class for the Cache class.
+ *
+ * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
+ * @version 1.0
  */
 public class CacheTest extends TestCase {
     private Cache cache;

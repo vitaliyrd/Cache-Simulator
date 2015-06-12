@@ -1,7 +1,10 @@
 package model;
 
 /**
- * Created by Vitaliy on 6/12/15.
+ * Simple wrapper for instructions that can get passed to the CPUs.
+ *
+ * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
+ * @version 1.0
  */
 public class Instruction {
     public int instruction;
@@ -9,6 +12,6 @@ public class Instruction {
     public int data;
 
     public enum MemoryAction {
-        READ, WRITE, NONE;
+        READ, WRITE;
     }
 }

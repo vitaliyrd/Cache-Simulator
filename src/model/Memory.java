@@ -1,7 +1,10 @@
 package model;
 
 /**
- * Created by Vitaliy on 6/3/15.
+ * The main memory of the system.
+ *
+ * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
+ * @version 1.0
  */
 public class Memory {
 

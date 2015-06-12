@@ -3,7 +3,10 @@ package model;
 import java.util.Map;
 
 /**
- * Created by Vitaliy on 6/3/15.
+ * CPU class that can execute instructions, as well as request memory accesses from the System.
+ *
+ * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
+ * @version 1.0
  */
 public class CPU {
     private Cache l1d;

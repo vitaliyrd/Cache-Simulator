@@ -1,4 +1,6 @@
 offset: number of hex digits=cache line size in bytes / 16
+        number of bits=cache line size in bytes / 4
+        when you truncate the offset off the int of the memory address, it's equivalent to dividing the address by 2^(bits truncated)
 assumed associativity = 2 way
 bits needed for n-way associative index = log base 2 of n
 the rest of the bits are used for tag

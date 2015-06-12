@@ -9,8 +9,10 @@ CPU:
 + L1 Instruction Cache
 + L1 Data Cache
 + L2 Cache
-- boolean readMemory(int location)
-- boolean writeMemory(int location, int data)
++ Reference to System
+- void execute(Instruction)
+
+Instruction: just a wrapper class that holds the specs of an instruction
 
 Cache:
 + int accesses

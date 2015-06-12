@@ -14,6 +14,8 @@ import java.util.Random;
 public class Cache {
     private static Random generator = new Random();
 
+    public boolean debug = false;   // Prints debug messages to the console.
+
     private int accesses;
     private int misses;
     private int cache[];
@@ -35,7 +37,7 @@ public class Cache {
     }
 
     /**
-     * Searches for a memory location to determine whether it is in this Cache.
+     * Searches for the passed memory location returns whether it is in the Cache.
      *
      * @param location The memory address to search for.
      * @return True if the search was a hit, false if the search was a miss.
@@ -63,18 +65,19 @@ public class Cache {
 
             for(int i = 0; i < associativity; i++) {
                 if(cache[(set * associativity) + i] == tag) {
-                    System.out.println("Tag " + tag + " located in set " + set + ", index " + i + " of cache.");
+                    if(debug) System.out.println("Tag " + tag + " located in set " + set + ", index " + i + " of cache.");
+
                     return true;
                 }
             }
         }
         misses++;
-        System.out.println("Cache Miss");
+        if(debug) System.out.println("Cache Miss");
         return false;
     }
 
     /**
-     * Adds the passed memory location to the correct position in this Cache.
+     * Adds the passed memory location to the correct position in the Cache.
      *
      * @param location The memory address to add.
      */
@@ -104,7 +107,24 @@ public class Cache {
             int index = generator.nextInt(associativity);
 
             cache[(associativity * set) + index] = tag;
-            System.out.println("Tag " + tag + " added to set " + set + ", index " + index + " of cache.");
+
+            if(debug) System.out.println("Tag " + tag + " added to set " + set + ", index " + index + " of cache.");
         }
+    }
+
+    public int getMisses() {
+        return misses;
+    }
+
+    public int getHits() {
+        return accesses - misses;
+    }
+
+    public int getAccesses() {
+        return accesses;
+    }
+
+    public int getLatency() {
+        return latency;
     }
 }

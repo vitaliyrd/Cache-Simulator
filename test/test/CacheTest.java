@@ -22,12 +22,15 @@ public class CacheTest extends TestCase {
         int blockSize = 64;
         int associativity = 4;
         cache = new Cache(blocks, blockSize, associativity, 1);
+        cache.debug = true;
 
         cache.fetch(0b01111101011101110001101100111000);
         cache.locate(0b01111101011101110001101100111000);   // Hit
         cache.locate(0b01111101011101110001101100111010);   // Hit
         cache.locate(0b01111101011101110001101101111000);   // Miss
         cache.locate(0b01111101111101110001101100111000);   // Miss
+
+        System.out.println();
 
         cache.fetch(0b01111101011101110001111111111000);
         cache.locate(0b01111101011101110001111111111000);   // Hit

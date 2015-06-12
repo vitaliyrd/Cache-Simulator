@@ -20,7 +20,7 @@ public class CacheTest extends TestCase {
     public void testDirectMappedCache() {
         int blocks = 512;
         int blockSize = 64;
-        int associativity = 4;
+        int associativity = 1;
         cache = new Cache(blocks, blockSize, associativity, 1);
         cache.debug = true;
 

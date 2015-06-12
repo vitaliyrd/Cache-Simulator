@@ -39,22 +39,23 @@ public class Cache {
      */
     public boolean locate(int location) {
     	accesses++;
-        int index = 0; //might need this as a field
-        int offset = location >> (blockSize/4);
-        if (associativity > 1) {
-            index = offset & ~(0xFFFFFFFF << (int)(Math.log(associativity) / Math.log(2)));
-            // search the set
-        } else {
-            index = offset & ~(0xFFFFFFFF << (int) (Math.log(blocks) / Math.log(2)));
+        int offsetBits = (int)(Math.log(blockSize) / Math.log(2));
+        // This is the memory address with the bits representing the offset truncated.
+        int offsetRemoved = location >>> offsetBits;  // The >>> prevents sign extension.
 
-            int tag = location >> (blockSize / 4);                  // First truncate the offset.
-            tag = tag >> (int) (Math.log(blocks) / Math.log(2));    // Truncate the index.
+        // If the cache is a direct-mapped cache:
+        if(associativity == 1) {
+            int indexBits = (int)(Math.log(blocks) / Math.log(2));
+            int index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
+            int tag = location >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             if(cache[index] == tag) {
+                System.out.println("Tag " + tag + " located at line " + index + " of cache.");
                 return true;
             }
         }
         misses++;
+        System.out.println("Cache Miss");
         return false;
     }
 
@@ -64,20 +65,18 @@ public class Cache {
      * @param location The memory address to add.
      */
     public void fetch(int location) {
-        int index = 0; //might need this as a field
-        int offset = location >> (blockSize/4);
-        if (associativity > 1) {
-            index = offset & ~(0xFFFFFFFF << (int)(Math.log(associativity) / Math.log(2)));
-            //find first unused block in the set indicated by the index
-            //if no free block found replace via LRU
-        }
-        else {
-            index = offset & ~(0xFFFFFFFF << (int) (Math.log(blocks) / Math.log(2)));
+        int offsetBits = (int)(Math.log(blockSize) / Math.log(2));
+        // This is the memory address with the bits representing the offset truncated.
+        int offsetRemoved = location >>> offsetBits;  // The >>> prevents sign extension.
 
-            int tag = location >> (blockSize / 4);                  // First truncate the offset.
-            tag = tag >> (int) (Math.log(blocks) / Math.log(2));    // Truncate the index.
+        // If the cache is a direct-mapped cache:
+        if(associativity == 1) {
+            int indexBits = (int)(Math.log(blocks) / Math.log(2));
+            int index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
+            int tag = location >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             cache[index] = tag;
+            System.out.println("Tag " + tag + " added to line " + index + " of cache.");
         }
     }
 }

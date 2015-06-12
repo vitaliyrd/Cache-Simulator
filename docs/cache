@@ -1,6 +1,6 @@
 offset: number of hex digits=log base 2 of cache line size in bytes / 4
         number of bits=log base 2 of cache line size in bytes
-        
+
 assumed associativity = 2 way
 bits needed for n-way associative index = log base 2 of n
 the rest of the bits are used for tag

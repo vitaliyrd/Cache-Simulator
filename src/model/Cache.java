@@ -2,6 +2,7 @@ package model;
 
 import java.lang.*;
 import java.lang.System;
+import java.util.Random;
 
 /**
  * A memory cache, configurable to be direct-mapped or associative.
@@ -11,6 +12,8 @@ import java.lang.System;
  * @version 1.0
  */
 public class Cache {
+    private static Random generator = new Random();
+
     private int accesses;
     private int misses;
     private int cache[];
@@ -50,8 +53,19 @@ public class Cache {
             int tag = location >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             if(cache[index] == tag) {
-                System.out.println("Tag " + tag + " located at line " + index + " of cache.");
+                System.out.println("Tag " + tag + " located in line " + index + " of cache.");
                 return true;
+            }
+        } else {
+            int setBits = (int)(Math.log(blocks / associativity) / Math.log(2));
+            int set = offsetRemoved & ~(0xFFFFFFFF << setBits);
+            int tag = location >>> setBits + offsetBits;    // The >>> prevents sign extension.
+
+            for(int i = 0; i < associativity; i++) {
+                if(cache[(set * associativity) + i] == tag) {
+                    System.out.println("Tag " + tag + " located in set " + set + ", index " + i + " of cache.");
+                    return true;
+                }
             }
         }
         misses++;
@@ -77,6 +91,20 @@ public class Cache {
 
             cache[index] = tag;
             System.out.println("Tag " + tag + " added to line " + index + " of cache.");
+        }
+
+        // If the cache is an associative cache:
+        else {
+            int setBits = (int)(Math.log(blocks / associativity) / Math.log(2));
+            int set = offsetRemoved & ~(0xFFFFFFFF << setBits);
+            int tag = location >>> setBits + offsetBits;    // The >>> prevents sign extension.
+
+            // For now it's inserting at random, as the instructions don't specify whether we are to do
+            // LRU or Random. Random is easier to implement.
+            int index = generator.nextInt(associativity);
+
+            cache[(associativity * set) + index] = tag;
+            System.out.println("Tag " + tag + " added to set " + set + ", index " + index + " of cache.");
         }
     }
 }

@@ -20,14 +20,20 @@ public class CacheTest extends TestCase {
     public void testDirectMappedCache() {
         int blocks = 512;
         int blockSize = 64;
-        int associativity = 1;
+        int associativity = 4;
         cache = new Cache(blocks, blockSize, associativity, 1);
 
         cache.fetch(0b01111101011101110001101100111000);
-        cache.locate(0b01111101011101110001101100111000);
-        cache.locate(0b01111101011101110001101100111010);
-        cache.locate(0b01111101011101110001101101111000);
-        cache.locate(0b01111101111101110001101100111000);
+        cache.locate(0b01111101011101110001101100111000);   // Hit
+        cache.locate(0b01111101011101110001101100111010);   // Hit
+        cache.locate(0b01111101011101110001101101111000);   // Miss
+        cache.locate(0b01111101111101110001101100111000);   // Miss
+
+        cache.fetch(0b01111101011101110001111111111000);
+        cache.locate(0b01111101011101110001111111111000);   // Hit
+        cache.locate(0b01111101011101110001111111111000);   // Hit
+        cache.locate(0b01101101011101110001111111111000);   // Miss
+        cache.locate(0b01111101011101110001101111111000);   // Miss
 
     }
 

@@ -1,0 +1,9 @@
+-- 6/12 8:11 PM Vitaliy --
+Can't seem to reach Alex or Tru by text so if you guys read this please get back to me. I have the
+the project at the point where the memory trace is going to work, but only with one CPU. Having
+worked on this I've realized that we need to redesign the program a bit. So I'm gonna leave it at
+this for today, and work on it tomorrow morning. I don't know how much time I'll have tomorrow or
+Sunday, but I'll have a few hours in the morning to work on it. Getting multiple CPUs to work is
+the hard part, and is why I think we need to change a few things about how we're going about with
+the program. I started working on MainSystem, however I'm going to scrap it because it's really
+messy.

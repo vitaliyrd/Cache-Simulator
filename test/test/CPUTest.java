@@ -21,23 +21,36 @@ public class CPUTest {
 
     @Test
     public void test() {
-        Map<String, Integer> config = new HashMap<>();
-        config.put("l1d_blocks", 32);
-        config.put("l1d_blockSize", 16);
-        config.put("l1d_associativity", 1);
-        config.put("l1d_latency", 1);
+        Map<String, Integer> configuration = new HashMap<>();
+        configuration.put("l1d_blocks", 32);
+        configuration.put("l1d_blockSize", 16);
+        configuration.put("l1d_associativity", 1);
+        configuration.put("l1d_latency", 1);
 
-        config.put("l1i_blocks", 32);
-        config.put("l1i_blockSize", 16);
-        config.put("l1i_associativity", 1);
-        config.put("l1i_latency", 1);
+        configuration.put("l1i_blocks", 32);
+        configuration.put("l1i_blockSize", 16);
+        configuration.put("l1i_associativity", 1);
+        configuration.put("l1i_latency", 1);
 
-        config.put("l2_blocks", 512);
-        config.put("l2_blockSize", 16);
-        config.put("l2_associativity", 1);
-        config.put("l2_latency", 10);
+        configuration.put("l2_blocks", 512);
+        configuration.put("l2_blockSize", 16);
+        configuration.put("l2_associativity", 1);
+        configuration.put("l2_latency", 10);
 
-        cpu = new CPU(config, new MainSystem());
+        configuration.put("l3_blocks", 2048);
+        configuration.put("l3_blockSize", 16);
+        configuration.put("l3_associativity", 1);
+        configuration.put("l3_latency", 35);
+
+        configuration.put("1lm_size", 16*1024);
+        configuration.put("1lm_readLatency", 100);
+        configuration.put("1lm_writeLatency", 100);
+
+        configuration.put("2lm_size", 1024*1024);
+        configuration.put("2lm_readLatency", 250);
+        configuration.put("2lm_writeLatency", 400);
+
+        cpu = new CPU(configuration, new MainSystem(configuration));
         cpu.debug = true;
 
         Instruction i1 = new Instruction();

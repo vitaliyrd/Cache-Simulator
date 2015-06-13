@@ -7,6 +7,7 @@ package model;
  * @version 1.0
  */
 public class Memory {
+    public boolean debug;
 
     private int reads;
     private int writes;
@@ -14,15 +15,36 @@ public class Memory {
     private int readLatency;
     private int writeLatency;
 
-    public Memory() {
-
+    public Memory(int size, int readLatency, int writeLatency) {
+        this.size = size;
+        this.readLatency = readLatency;
+        this.writeLatency = writeLatency;
     }
 
-    void read(int location) {
-
+    boolean read(int location) {
+        if(location < size) {
+            reads++;
+            if(debug) System.out.println("Memory location " + location + " read successfully.");
+            return true;
+        } else {
+            if(debug) System.out.println("Memory location " + location + " read failed.");
+            return false;
+        }
     }
 
-    void write(int location) {
+    boolean write(int location) {
+        if(location < size) {
+            writes++;
+            if(debug) System.out.println("Memory location " + location + " written successfully.");
+            return true;
+        } else {
+            // This will happen only with incorrect addresses.
+            if(debug) System.out.println("Memory location " + location + " write failed.");
+            return false;
+        }
+    }
 
+    int getTotalTime() {
+        return reads*readLatency + writes*writeLatency;
     }
 }

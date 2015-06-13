@@ -100,6 +100,41 @@ public class Cache {
     }
 
     /**
+     * Returns the index in the cache where this address can be found.
+     * Warning: This method assumes that the same address has been tested for a hit with the locate method.
+     * This method is really only needed for shared caches.
+     *
+     * @param location The address to look for.
+     * @return The index of the passed address.
+     */
+    public int getIndex(int location) {
+        int offsetBits = (int)(Math.log(blockSize) / Math.log(2));
+        // This is the memory address with the bits representing the offset truncated.
+        int offsetRemoved = location >>> offsetBits;  // The >>> prevents sign extension.
+
+        // If the cache is a direct-mapped cache:
+        if(associativity == 1) {
+            int indexBits = (int)(Math.log(blocks) / Math.log(2));
+            int index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
+
+            return index;
+
+        // If the cache is an associative cache:
+        } else {
+            int setBits = (int)(Math.log(blocks / associativity) / Math.log(2));
+            int set = offsetRemoved & ~(0xFFFFFFFF << setBits);
+            int tag = location >>> setBits + offsetBits;    // The >>> prevents sign extension.
+
+            for(int i = 0; i < associativity; i++) {
+                if(cache[(set * associativity) + i] == tag) {
+                    return (set * associativity) + i;
+                }
+            }
+        }
+        return -1; // Under normal execution, this should never happen.
+    }
+
+    /**
      * Adds the passed memory location to the correct position in the Cache.
      *
      * @param location The memory address to add.
@@ -164,5 +199,24 @@ public class Cache {
      */
     public int getTotalTime() {
         return accesses * latency;
+    }
+
+    private enum MESI {
+        /**
+         * This cache line is present only in the this cache, and is dirty; it does not match main memory.
+         */
+        MODIFIED,
+        /**
+         * This cache line is present only in the this cache, and is clean; it matches main memory.
+         */
+        EXCLUSIVE,
+        /**
+         * This cache line may be stored in other caches and is clean; it matches main memory.
+         */
+        SHARED,
+        /**
+         * This cache line is invalid (unused).
+         */
+        INVALID;
     }
 }

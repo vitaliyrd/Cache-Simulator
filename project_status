@@ -13,3 +13,8 @@ I didnt get the group texts, but i did get the individual texts. Let me know whi
 I suggest we make up a TO-DO list with everything that needs doing, and everything that is already done
 so that we dont step on each other's toes.
 EDIT- Just read over vitaliy's work. HOLY FUCK. You are a genius. So beautiful.
+
+--6/13 4:47 PM Vitaliy --
+Lol it's gonna be tough to get multiple CPUs to work though with the way it's done right now. So we
+have to make some changes on how the Caches interface with the CPUs and the System. I'm working on
+something that I'll upload shortly.

@@ -21,7 +21,7 @@ Cache:
 - boolean locate(int location)
 - void fetch(int location)
 
-System:
+MainSystem:
 + Array of the CPUs
 + Array of the memories
 + L3 Cache

@@ -14,7 +14,7 @@ public class CPU {
     private Cache l2;
     private System system;
 
-    private int executes = 0;
+    private int instructions = 0;
 
     public CPU(Map<String, Integer> configuration, System system) {
         // Configure l1d
@@ -43,7 +43,16 @@ public class CPU {
             writeMemory(instruction.data);
         }
 
-        executes++;
+        instructions++;
+    }
+
+    /**
+     * Returns the total time the CPU had to wait on its two levels of Caches.
+     *
+     * @return Total Cache wait time in nanoseconds.
+     */
+    public int getCacheWaitTime() {
+        return l1i.getTotalTime() + l1d.getTotalTime() + l2.getTotalTime();
     }
 
     private void readInstructionMemory(int address) {
@@ -91,6 +100,8 @@ public class CPU {
     }
 
     private void writeMemory(int address) {
-
+        l2.write(address);
+        l1d.write(address);
+        system.write(address);
     }
 }

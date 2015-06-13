@@ -6,6 +6,7 @@ import java.util.Random;
 
 /**
  * A memory cache, configurable to be direct-mapped or associative.
+ * The Cache is assumed to have symmetric (read == write) latencies.
  * NOTE: The cache is undefined upon initialization; all memories must be fetched the first time the cache is used.
  *
  * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
@@ -16,8 +17,28 @@ public class Cache {
 
     public boolean debug = false;   // Prints debug messages to the console.
 
-    private int accesses;
-    private int misses;
+    /**
+     * Counts the number of accesses of this Cache.
+     * Accesses include: locate and write operations.
+     * Note: Fetches will not be included in this count since its assumed that memory will be fetched upon a miss.
+     */
+    private int accesses = 0;
+    /**
+     * Counts the number of misses of this Cache.
+     * Misses can only occur on locate calls.
+     */
+    private int misses = 0;
+    /**
+     * Counts the number of hits of this Cache.
+     * Misses can only occur on locate calls.
+     */
+    private int hits = 0;
+    /**
+     * Counts the number of writes in this Cache.
+     * Writes can only occur on write calls.
+     */
+    private int writes = 0;
+
     private int cache[];
 
     private int blocks;
@@ -26,8 +47,6 @@ public class Cache {
     private int latency;
 
     public Cache(int blocks, int blockSize, int associativity, int latency) {
-        accesses = 0;
-        misses = 0;
         cache = new int[blocks];
 
         this.blocks = blocks;
@@ -44,6 +63,7 @@ public class Cache {
      */
     public boolean locate(int location) {
     	accesses++;
+
         int offsetBits = (int)(Math.log(blockSize) / Math.log(2));
         // This is the memory address with the bits representing the offset truncated.
         int offsetRemoved = location >>> offsetBits;  // The >>> prevents sign extension.
@@ -55,7 +75,9 @@ public class Cache {
             int tag = location >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             if(cache[index] == tag) {
-                System.out.println("Tag " + tag + " located in line " + index + " of cache.");
+                if(debug) System.out.println("Tag " + tag + " located in line " + index + " of cache.");
+
+                hits++;
                 return true;
             }
         } else {
@@ -67,10 +89,12 @@ public class Cache {
                 if(cache[(set * associativity) + i] == tag) {
                     if(debug) System.out.println("Tag " + tag + " located in set " + set + ", index " + i + " of cache.");
 
+                    hits++;
                     return true;
                 }
             }
         }
+
         misses++;
         if(debug) System.out.println("Cache Miss");
         return false;
@@ -93,7 +117,7 @@ public class Cache {
             int tag = location >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             cache[index] = tag;
-            System.out.println("Tag " + tag + " added to line " + index + " of cache.");
+            if(debug) System.out.println("Tag " + tag + " added to line " + index + " of cache.");
         }
 
         // If the cache is an associative cache:
@@ -112,6 +136,12 @@ public class Cache {
         }
     }
 
+    public void write(int address) {
+        accesses++;
+        writes++;
+        fetch(address);     // This write is also found at the memory in address, so we should keep things in sync.
+    }
+
     public int getMisses() {
         return misses;
     }
@@ -126,5 +156,14 @@ public class Cache {
 
     public int getLatency() {
         return latency;
+    }
+
+    /**
+     * Returns the total time the CPU had to wait on this Cache.
+     *
+     * @return Total time in nanoseconds.
+     */
+    public int getTotalTime() {
+        return accesses * latency;
     }
 }

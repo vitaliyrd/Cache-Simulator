@@ -10,4 +10,8 @@ public class System {
     public void fetch(int address) {
 
     }
+
+    public void write(int address) {
+
+    }
 }

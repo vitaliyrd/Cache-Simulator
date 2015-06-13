@@ -43,3 +43,12 @@ Main program:
 loads memory trace file
 execute all reads/writes based on trace file
 print summary
+
+Assumptions:
+- When a miss happens, we don't count the time it takes for everything to be fetched back into the caches. In other words,
+we only count the access time of each level of memory as we look for the data. When the data is found, we use the total time
+up to and including the level of memory where the data was found. For example, if the hit occurred first at the 1LM:
+Time = L1d latency + L2 latency + L3 latency + 1LM latency
+What I'm trying to say is that I don't think we need to account for the time it takes to update all of the caches with
+this data that was acquired at 1LM. In an ideal system when the 1LM is accessed it will in one moment update all of the
+caches AND send the data to the CPU.

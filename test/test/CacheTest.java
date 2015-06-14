@@ -27,7 +27,8 @@ public class CacheTest extends TestCase {
         cache = new Cache(blocks, blockSize, associativity, 1);
         cache.debug = true;
 
-        cache.fetch(0b01111101011101110001101100111000);
+        int index = cache.add(0b01111101011101110001101100111000);
+        cache.markValid(index);
         cache.locate(0b01111101011101110001101100111000);   // Hit
         cache.locate(0b01111101011101110001101100111010);   // Hit
         cache.locate(0b01111101011101110001101101111000);   // Miss
@@ -35,7 +36,8 @@ public class CacheTest extends TestCase {
 
         System.out.println();
 
-        cache.fetch(0b01111101011101110001111111111000);
+        index = cache.add(0b01111101011101110001111111111000);
+        cache.markValid(index);
         cache.locate(0b01111101011101110001111111111000);   // Hit
         cache.locate(0b01111101011101110001111111111000);   // Hit
         cache.locate(0b01101101011101110001111111111000);   // Miss

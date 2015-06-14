@@ -174,7 +174,7 @@ public class Cache {
     }
 
     /**
-     * Marks the line int he cache at the passed index as shared.
+     * Marks the line in the cache at the passed index as shared.
      *
      * @param index The index of the cache line to share.
      */
@@ -183,9 +183,9 @@ public class Cache {
     }
 
     /**
-     * Marks the line int he cache at the passed index as shared.
+     * Marks the line in the cache at the passed index as shared.
      *
-     * @param index The index of the cache line to share.
+     * @param index The index of the cache line to mark as Exclusive.
      */
     public void markExclusive(int index) {
         cache[index].shared = false;

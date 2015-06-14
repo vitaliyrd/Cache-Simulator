@@ -37,3 +37,6 @@ I'm gonna go ask my bro if we can use his IRC server, I'll let you know in a bit
 the reason why it said that is because I changed the Cache class, and I committed after you changed the Memory class.
 So it merged my changes to Cache and your changes to Memory into a single repository. Your changes to Memory should still be
 there, as well as my changes to Cache.
+
+-- 6/13 8:50 PM Vitaliy --
+Nvm I set up a server on freenode, the channel is called cache

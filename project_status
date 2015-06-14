@@ -31,3 +31,9 @@ Unfortunately, With my shitty phone coverage, this is the best way to gaurentee 
 showing we tried contacting tru. I hope he's okay. So i just tryed submitting a change, and it said you had modified the 
 file i was changing, so my changes were made into a branch. They were mostly just javadocs anyways, but if you see
 the new branch, thats what thats about. I dont know how to merge them, or even if its worth it since everything is changed anyway.
+
+-- 6/13 8:45 PM Vitaliy --
+I'm gonna go ask my bro if we can use his IRC server, I'll let you know in a bit. About that, I saw your changes,
+the reason why it said that is because I changed the Cache class, and I committed after you changed the Memory class.
+So it merged my changes to Cache and your changes to Memory into a single repository. Your changes to Memory should still be
+there, as well as my changes to Cache.

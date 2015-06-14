@@ -131,6 +131,7 @@ public class Cache {
             index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
             int tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
+            // TODO: Implement writeback here
             cache[index].tag = tag;
             if(debug) debuggingOutput.println("Tag " + tag + " added to line " + index + " of cache.");
             return index;
@@ -146,6 +147,7 @@ public class Cache {
             // LRU or Random. Random is easier to implement.
             index = generator.nextInt(associativity);
 
+            // TODO: Implement writeback here
             cache[(associativity * set) + index].tag = tag;
 
             if(debug) debuggingOutput.println("Tag " + tag + " added to set " + set + ", index " + index + " of cache.");
@@ -205,5 +207,21 @@ public class Cache {
      */
     public void markNotModified(int index) {
         cache[index].dirty = false;
+    }
+
+    public boolean isModified(int index) {
+        return cache[index].dirty;
+    }
+
+    public boolean isExclusive(int index) {
+        return !cache[index].shared;
+    }
+
+    public boolean isShared(int index) {
+        return cache[index].shared;
+    }
+
+    public boolean isInvalid(int index) {
+        return !cache[index].valid;
     }
 }

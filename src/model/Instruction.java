@@ -12,6 +12,6 @@ public class Instruction {
     public int data;
 
     public enum MemoryAction {
-        READ, WRITE;
+        READ, WRITE
     }
 }

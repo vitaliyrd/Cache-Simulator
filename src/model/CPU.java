@@ -18,9 +18,20 @@ public class CPU {
      * Where to print debugging messages - System.out by default.
      */
     public PrintStream debuggingOutput = System.out;
-
+    
+    /**
+     * Cache L1I.
+     */
     private Cache l1i;
+    
+    /**
+     * Cache L1D.
+     */
     private Cache l1d;
+    
+    /**
+     * Shared Cache
+     */
     private Cache l2;
 
     private SystemBus system;
@@ -80,7 +91,7 @@ public class CPU {
             time += l1i.getLatecy();
             return time;
         }
-
+        
         // Next try l2
         if(debug) debuggingOutput.print("l2: ");
         int index2 = l2.locate(address);
@@ -95,7 +106,7 @@ public class CPU {
 
         // If all caches in CPU missed, request a read on the system bus.
         if(debug) debuggingOutput.print("System read request placed");
-        time += system.issueReadRequest(address, this);
+        time += system.issueReadRequest(address, this); //very clever
         return time;
     }
 
@@ -133,13 +144,13 @@ public class CPU {
 
         // If the previous data exists already in the cache:
         if(debug) debuggingOutput.print("l1d: ");
-        int index1 = l1d.locate(address);
-        time += l1d.getLatecy();
-        int index2 = l2.locate(address);
-        time += l2.getLatecy();
+        int index1 = l1d.locate(address);   //Saving the index of the address as index1
+        time += l1d.getLatecy();            //Getting latency
+        int index2 = l2.locate(address);    //Saving the index of the shared address as index2
+        time += l2.getLatecy();             //Getting latency
 
-        if(index1 != -1) {
-            time += l1d.getLatecy();
+        if(index1 != -1) {                  //If valid index
+            time += l1d.getLatecy();        //(Alex) Why do we increment time again, even though we did so 5 lines up?
 
             if(l1d.isModified(index1)) {
                 // Update the value (no state change).
@@ -156,7 +167,7 @@ public class CPU {
             // Update state in l2.
             l2.markExclusive(index2);
             l2.markModified(index2);
-        } else if(index2 != -1) {
+        } else if(index2 != -1) {           //Address not found in L1, so we look in L2
             time += l2.getLatecy();
 
             if(l2.isModified(index2)) {
@@ -172,7 +183,7 @@ public class CPU {
             }
 
             // Bring the cache line in to l1d.
-            l1d.add(address);
+            l1d.add(address); //Write back
             l1d.markExclusive(index1);
             l1d.markModified(index1);
         } else {

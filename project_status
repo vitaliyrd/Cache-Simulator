@@ -52,4 +52,5 @@ When everyone is done, we'll compare and contrast as we have for the previous pr
 I've tried my best to stay in contact, but it's tough with this shitty cell service. I understand the work you've posted so far,
 but what's missing? It all looks good to me, minus some testing. I'm using the work you've posted as a spring board, since 
 you figured out the general structure (I would have had no idea how to do the "Modified" "Exclusive" "Shared" and "invalid", and
-Im still not quite sure i get it.) From what i can tell, it's just systembus that needs finishing?
+Im still not quite sure i get it.) From what i can tell, it's just systembus that needs finishing? Also, the channel ##cache-project 
+is empty.

@@ -32,7 +32,11 @@ public class Cache {
     private int associativity;
     private int latency;
 
-    public Cache(int blocks, int blockSize, int associativity, int latency) {
+    private int extraLatency = 0;   // Latency when extra operations were done, for example clearing a cache line.
+
+    private SystemBus system;
+
+    public Cache(int blocks, int blockSize, int associativity, int latency, SystemBus system) {
         cache = new CacheLine[blocks];
         for(int i = 0; i < blocks; i++) {
             cache[i] = new CacheLine();
@@ -42,10 +46,14 @@ public class Cache {
         this.blockSize = blockSize;
         this.associativity = associativity;
         this.latency = latency;
+
+        this.system = system;
     }
 
     public int getLatecy() {
-        return latency;
+        int time = latency + extraLatency;
+        extraLatency = 0;
+        return time;
     }
 
     public int getMisses() {
@@ -131,8 +139,12 @@ public class Cache {
             index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
             int tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
-            // TODO: Implement writeback here
+            if(cache[index].isModified()) {
+                extraLatency = system.issueWriteRequest(address, null);
+                cache[index].dirty = false;
+            }
             cache[index].tag = tag;
+            cache[index].valid = true;
             if(debug) debuggingOutput.println("Tag " + tag + " added to line " + index + " of cache.");
             return index;
         }
@@ -147,8 +159,12 @@ public class Cache {
             // LRU or Random. Random is easier to implement.
             index = generator.nextInt(associativity);
 
-            // TODO: Implement writeback here
+            if(cache[index].isModified()) {
+                extraLatency = system.issueWriteRequest(address, null);
+                cache[(associativity * set) + index].dirty = false;
+            }
             cache[(associativity * set) + index].tag = tag;
+            cache[(associativity * set) + index].valid = true;
 
             if(debug) debuggingOutput.println("Tag " + tag + " added to set " + set + ", index " + index + " of cache.");
             return (associativity * set) + index;

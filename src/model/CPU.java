@@ -41,20 +41,23 @@ public class CPU {
     public CPU(Map<String, Integer> config, SystemBus system) {
         // Configure l1d
         l1d = new Cache(config.get("l1d_blocks"), config.get("l1d_blockSize"),
-                config.get("l1d_associativity"), config.get("l1d_latency"));
+                config.get("l1d_associativity"), config.get("l1d_latency"), system);
 
         // Configure l1i
         l1i = new Cache(config.get("l1i_blocks"), config.get("l1i_blockSize"),
-                config.get("l1i_associativity"), config.get("l1i_latency"));
+                config.get("l1i_associativity"), config.get("l1i_latency"), system);
 
         // Configure l2
         l2 = new Cache(config.get("l2_blocks"), config.get("l2_blockSize"),
-                config.get("l2_associativity"), config.get("l2_latency"));
+                config.get("l2_associativity"), config.get("l2_latency"), system);
 
         this.system = system;   // Todo: This creates an interdependency; fix if time permits.
                                 // Message-passing is a better way to do this.
     }
 
+    public int getInstructionCount() {
+        return instructionCount;
+    }
     /**
      * Executes the passed Instruction.
      *
@@ -162,7 +165,8 @@ public class CPU {
         time += l2.getLatecy();             //Getting latency
 
         if(index1 != -1) {                  //If valid index
-            time += l1d.getLatecy();        //(Alex) Why do we increment time again, even though we did so 5 lines up?
+            time += l1d.getLatecy();        //Increment time again, since we first had to look for the data,
+                                            // and then write to the cache.
 
             if(l1d.isModified(index1)) {
                 // Update the value (no state change).
@@ -200,6 +204,10 @@ public class CPU {
             l1d.markModified(index1);
         } else {
             time += system.issueWriteRequest(address, this);
+            index1 = l1d.add(address);   // Write to l1d
+            index2 = l2.add(address);    // Write to l2
+            l1d.markModified(index1);
+            l2.markModified(index2);
         }
 
         return time;

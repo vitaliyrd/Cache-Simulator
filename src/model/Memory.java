@@ -1,5 +1,7 @@
 package model;
 
+import java.io.PrintStream;
+
 /**
  * The main memory of the system.
  *
@@ -7,7 +9,14 @@ package model;
  * @version 1.0
  */
 public class Memory {
-    public boolean debug;
+    /**
+     * If enabled, prints debugging messages to the console.
+     */
+    public boolean debug = false;
+    /**
+     * Where to print debugging messages - System.out by default.
+     */
+    public PrintStream debuggingOutput = System.out;
 
     private int reads;
     private int writes;
@@ -32,10 +41,10 @@ public class Memory {
     boolean read(int location) {
         if(location < size) {
             reads++;
-            if(debug) System.out.println("Memory location " + location + " read successfully.");
+            if(debug) debuggingOutput.println("Memory location " + location + " read successfully.");
             return true;
         } else {
-            if(debug) System.out.println("Memory location " + location + " read failed.");
+            if(debug) debuggingOutput.println("Memory location " + location + " read failed.");
             return false;
         }
     }
@@ -46,11 +55,11 @@ public class Memory {
     boolean write(int location) {
         if(location < size) {
             writes++;
-            if(debug) System.out.println("Memory location " + location + " written successfully.");
+            if(debug) debuggingOutput.println("Memory location " + location + " written successfully.");
             return true;
         } else {
             // This will happen only with incorrect addresses.
-            if(debug) System.out.println("Memory location " + location + " write failed.");
+            if(debug) debuggingOutput.println("Memory location " + location + " write failed.");
             return false;
         }
     }
@@ -61,6 +70,14 @@ public class Memory {
 
     int getWriteLatency() {
         return readLatency;
+    }
+
+    int getReads() {
+        return reads;
+    }
+
+    int getWrites() {
+        return writes;
     }
 
     /** Returns the product of read latency and reads, summed with the product of writes and the write penalty.

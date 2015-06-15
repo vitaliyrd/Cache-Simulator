@@ -121,7 +121,15 @@ public class SystemBus {
         return 0;
     }
 
-    public void issueRequestForOwnership(int address, CPU caller) {
+    /**
+     * Invalidates block in the caches of the other CPUs that contain the passed address.
+     * @param address
+     * @param caller
+     * @return
+     */
+    public int issueRequestForOwnership(int address, CPU caller) {
+        int time = 0;
+
         CPU otherCPU;
         if(caller == cpu1) {
             otherCPU = cpu2;
@@ -129,6 +137,23 @@ public class SystemBus {
             otherCPU = cpu1;
         }
 
+        int index1i = otherCPU.getL1i().locate(address);
+        int index1d = otherCPU.getL1d().locate(address);
+        int index2 = otherCPU.getL2().locate(address);
 
+        if(index1i != -1) {
+            time += otherCPU.getL1i().getLatecy();
+            otherCPU.getL1i().markInvalid(index1i);
+        }
+        if(index1d != -1) {
+            time += otherCPU.getL1d().getLatecy();
+            otherCPU.getL1d().markInvalid(index1d);
+        }
+        if(index2 != -1) {
+            time += otherCPU.getL2().getLatecy();
+            otherCPU.getL2().markInvalid(index2);
+        }
+
+        return time;
     }
 }

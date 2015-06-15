@@ -81,6 +81,10 @@ public class CPU {
         return time;
     }
 
+    public Cache getL1i() {
+        return l1i;
+    }
+
     public Cache getL1d() {
         return l1d;
     }
@@ -166,7 +170,7 @@ public class CPU {
                 // Update the value.
                 l1d.markModified(index1);   // MESI change: Exclusive -> Modified
             } else if(l1d.isShared(index1)) {
-                system.issueRequestForOwnership(address, this);
+                time += system.issueRequestForOwnership(address, this);
                 // Update the value.
                 l1d.markModified(index1);   // MESI change: Shared -> Modified
                 l1d.markExclusive(index1);
@@ -184,7 +188,7 @@ public class CPU {
                 // Update the value.
                 l2.markModified(index2);   // MESI change: Exclusive -> Modified
             } else if(l2.isShared(index2)) {
-                system.issueRequestForOwnership(address, this);
+                time += system.issueRequestForOwnership(address, this);
                 // Update the value.
                 l2.markModified(index2);   // MESI change: Shared -> Modified
                 l2.markExclusive(index2);

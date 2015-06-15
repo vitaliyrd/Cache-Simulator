@@ -10,7 +10,10 @@ public class Instruction {
     public int instruction;
     public MemoryAction memoryAction;
     public int data;
-
+    
+    /**
+     * Just functions as a flag.
+     */
     public enum MemoryAction {
         READ, WRITE
     }

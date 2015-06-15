@@ -38,7 +38,7 @@ public class Memory {
      * * If debug, also prints mem location to console.
      * @param location The location of the memory address to read from.
      */
-    boolean read(int location) {
+    boolean read(long location) {
         if(location < size) {
             reads++;
             if(debug) debuggingOutput.println("Memory location " + location + " read successfully.");
@@ -52,7 +52,7 @@ public class Memory {
      * If debug, also prints mem location to console.
      * @param location The location of the memory address to write to.
      */
-    boolean write(int location) {
+    boolean write(long location) {
         if(location < size) {
             writes++;
             if(debug) debuggingOutput.println("Memory location " + location + " written successfully.");

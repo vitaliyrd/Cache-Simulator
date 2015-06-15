@@ -74,18 +74,18 @@ public class Cache {
      * @param address The memory address to search for.
      * @return Index of block containing memory address in cache or -1 if address was not found or is invalid.
      */
-    public int locate(int address) {
+    public int locate(long address) {
         accesses++;
 
         int offsetBits = (int)(Math.log(blockSize) / Math.log(2));
         // This is the memory address with the bits representing the offset truncated.
-        int offsetRemoved = address >>> offsetBits;  // The >>> prevents sign extension.
+        long offsetRemoved = address >>> offsetBits;  // The >>> prevents sign extension.
 
         // If the cache is a direct-mapped cache:
         if(associativity == 1) {
             int indexBits = (int)(Math.log(blocks) / Math.log(2));
-            int index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
-            int tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
+            int index = (int) offsetRemoved & ~(0xFFFFFFFF << indexBits);
+            long tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             if(cache[index].tag == tag && cache[index].valid) {
                 if(debug) debuggingOutput.println("Tag " + tag + " located in line " + index + " of cache.");
@@ -94,8 +94,8 @@ public class Cache {
             }
         } else {
             int setBits = (int)(Math.log(blocks / associativity) / Math.log(2));
-            int set = offsetRemoved & ~(0xFFFFFFFF << setBits);
-            int tag = address >>> setBits + offsetBits;    // The >>> prevents sign extension.
+            int set = (int) offsetRemoved & ~(0xFFFFFFFF << setBits);
+            long tag = address >>> setBits + offsetBits;    // The >>> prevents sign extension.
 
             for(int i = 0; i < associativity; i++) {
                 if(cache[(set * associativity) + i].tag == tag && cache[(set * associativity) + i].valid) {
@@ -121,7 +121,7 @@ public class Cache {
      * @param address The memory address to add.
      * @return Index of block containing memory address that was just added.
      */
-    public int add(int address) {
+    public int add(long address) {
         // If it already exists in the cache, simply return the index where.
         int index = locate(address);
         if(index != -1 && cache[index].valid) {
@@ -131,13 +131,13 @@ public class Cache {
 
         int offsetBits = (int)(Math.log(blockSize) / Math.log(2));
         // This is the memory address with the bits representing the offset truncated.
-        int offsetRemoved = address >>> offsetBits;  // The >>> prevents sign extension.
+        long offsetRemoved = address >>> offsetBits;  // The >>> prevents sign extension.
 
         // If the cache is a direct-mapped cache:
         if(associativity == 1) {
             int indexBits = (int)(Math.log(blocks) / Math.log(2));
-            index = offsetRemoved & ~(0xFFFFFFFF << indexBits);
-            int tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
+            index = (int) offsetRemoved & ~(0xFFFFFFFF << indexBits);
+            long tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             if(cache[index].isModified()) {
                 extraLatency = system.issueWriteRequest(address, null);
@@ -152,8 +152,8 @@ public class Cache {
         // If the cache is an associative cache:
         else {
             int setBits = (int)(Math.log(blocks / associativity) / Math.log(2));
-            int set = offsetRemoved & ~(0xFFFFFFFF << setBits);
-            int tag = address >>> setBits + offsetBits;    // The >>> prevents sign extension.
+            int set = (int) offsetRemoved & ~(0xFFFFFFFF << setBits);
+            long tag = address >>> setBits + offsetBits;    // The >>> prevents sign extension.
 
             // For now it's inserting at random, as the instructions don't specify whether we are to do
             // LRU or Random. Random is easier to implement.

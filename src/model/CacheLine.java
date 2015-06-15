@@ -7,7 +7,7 @@ package model;
  * @version 1.0
  */
 public class CacheLine {
-    public int tag;
+    public long tag;
     /**
      * True if valid.
      */
@@ -43,4 +43,6 @@ public class CacheLine {
     public boolean isModified() {
         return dirty;
     }
+
+    public enum MESI {Modified,Exclusive,Shared,Invalid};
 }

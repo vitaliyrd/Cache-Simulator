@@ -10,7 +10,7 @@ public class Instruction {
     /**
      * Representaion of an opcode.
      */
-    public int instruction;
+    public long instruction;
     /**
      * Enum object to flag if the Action is Read or write.
      */
@@ -18,7 +18,7 @@ public class Instruction {
     /**
      * Dont actually care what the data is, just need something.
      */
-    public int data;
+    public long data;
     
     /**
      * Just functions as a flag.

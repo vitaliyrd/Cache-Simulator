@@ -40,16 +40,16 @@ public class CPU {
 
     public CPU(Map<String, Integer> config, SystemBus system) {
         // Configure l1d
-        l1d = new Cache(config.get("l1d_blocks"), config.get("l1d_blockSize"),
-                config.get("l1d_associativity"), config.get("l1d_latency"), system);
+        l1d = new Cache(config.get("l1_blocks"), config.get("block_size"),
+                config.get("associativity"), config.get("l1_latency"), system);
 
         // Configure l1i
-        l1i = new Cache(config.get("l1i_blocks"), config.get("l1i_blockSize"),
-                config.get("l1i_associativity"), config.get("l1i_latency"), system);
+        l1i = new Cache(config.get("l1_blocks"), config.get("block_size"),
+                config.get("associativity"), config.get("l1_latency"), system);
 
         // Configure l2
-        l2 = new Cache(config.get("l2_blocks"), config.get("l2_blockSize"),
-                config.get("l2_associativity"), config.get("l2_latency"), system);
+        l2 = new Cache(config.get("l2_blocks"), config.get("block_size"),
+                config.get("associativity"), config.get("l2_latency"), system);
 
         this.system = system;   // Todo: This creates an interdependency; fix if time permits.
                                 // Message-passing is a better way to do this.
@@ -96,7 +96,7 @@ public class CPU {
         return l2;
     }
 
-    private int readInstruction(int address) {
+    private int readInstruction(long address) {
         int time = 0;
 
         // First try l1i
@@ -125,7 +125,7 @@ public class CPU {
         return time;
     }
 
-    private int readData(int address) {
+    private int readData(long address) {
         int time = 0;
 
         // First try l1d
@@ -154,7 +154,7 @@ public class CPU {
         return time;
     }
 
-    private int writeData(int address) {
+    private int writeData(long address) {
         int time = 0;
 
         // If the previous data exists already in the cache:
@@ -172,11 +172,13 @@ public class CPU {
                 // Update the value (no state change).
             } else if(l1d.isExclusive(index1)) {
                 // Update the value.
-                l1d.markModified(index1);   // MESI change: Exclusive -> Modified
+                l1d.markModified(index1);
+                system.incrementModified(CacheLine.MESI.Exclusive); // MESI change: Exclusive -> Modified
             } else if(l1d.isShared(index1)) {
                 time += system.issueRequestForOwnership(address, this);
                 // Update the value.
-                l1d.markModified(index1);   // MESI change: Shared -> Modified
+                l1d.markModified(index1);
+                system.incrementModified(CacheLine.MESI.Shared);    // MESI change: Shared -> Modified
                 l1d.markExclusive(index1);
             }
 
@@ -190,11 +192,13 @@ public class CPU {
                 // Update the value (no state change).
             } else if(l2.isExclusive(index2)) {
                 // Update the value.
-                l2.markModified(index2);   // MESI change: Exclusive -> Modified
+                l2.markModified(index2);
+                system.incrementModified(CacheLine.MESI.Exclusive); // MESI change: Exclusive -> Modified
             } else if(l2.isShared(index2)) {
                 time += system.issueRequestForOwnership(address, this);
                 // Update the value.
-                l2.markModified(index2);   // MESI change: Shared -> Modified
+                l2.markModified(index2);
+                system.incrementModified(CacheLine.MESI.Shared);    // MESI change: Shared -> Modified
                 l2.markExclusive(index2);
             }
 

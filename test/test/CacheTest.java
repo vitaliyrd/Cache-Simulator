@@ -24,7 +24,7 @@ public class CacheTest extends TestCase {
         int blocks = 512;
         int blockSize = 64;
         int associativity = 1;
-        cache = new Cache(blocks, blockSize, associativity, 1);
+        cache = new Cache(blocks, blockSize, associativity, 1, null);
         cache.debug = true;
 
         int index = cache.add(0b01111101011101110001101100111000);

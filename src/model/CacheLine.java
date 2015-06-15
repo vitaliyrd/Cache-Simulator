@@ -8,8 +8,17 @@ package model;
  */
 public class CacheLine {
     public int tag;
+    /**
+     * True if valid.
+     */
     public boolean valid;
+    /**
+     * True if Modified.
+     */
     public boolean dirty;
+    /**
+     * True if shareable, false if exclusive.
+     */
     public boolean shared;
 
     public CacheLine() {

@@ -7,8 +7,17 @@ package model;
  * @version 1.0
  */
 public class Instruction {
+    /**
+     * Representaion of an opcode.
+     */
     public int instruction;
+    /**
+     * Enum object to flag if the Action is Read or write.
+     */
     public MemoryAction memoryAction;
+    /**
+     * Dont actually care what the data is, just need something.
+     */
     public int data;
     
     /**

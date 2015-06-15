@@ -54,3 +54,10 @@ but what's missing? It all looks good to me, minus some testing. I'm using the w
 you figured out the general structure (I would have had no idea how to do the "Modified" "Exclusive" "Shared" and "invalid", and
 Im still not quite sure i get it.) From what i can tell, it's just systembus that needs finishing? Also, the channel ##cache-project 
 is empty.
+--6/13 10:19 PM Alex --
+Soo midnight is rapidly approaching. I've kind of hit a brick wall on my end, as I dont really understand the "requestOwnership" method.
+I've continued updating my work here on github, so what you see is what you get.I dont know really how to progress now,
+as communication seems to be shot. At 11:55pm, if ive not heard from you vitaliy, I'll
+turn this version in. I kind of assume you've made more progress than I. You've carried this project hard thus far
+and for that I am sorry. I've done what I could, but I struggle to understand how the multicore system works. 
+As for Tru and Andy, text me what you think we should do. I'll do whatever you choose.

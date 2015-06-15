@@ -40,3 +40,29 @@ there, as well as my changes to Cache.
 
 -- 6/13 8:50 PM Vitaliy --
 Nvm I set up a server on freenode, the channel is called ##cache-project
+
+-- 6/14 3:26 PM Vitaliy --
+So I know we wanted to do this as a group project, but evidently that didn't work out. I think this is mostly due to the fact
+that we had finals week smack in the middle of the project - and this project is so complex that it requires critical planning
+and a complete understanding of the requirements. Because of finals, we didn't get a chance to properly meet and figure out 
+how we will be doing this project. So, I will try to finish the project myself, and you guys do the same (use what I have so far). 
+When everyone is done, we'll compare and contrast as we have for the previous projects.
+
+--6/13 8:27 PM Alex --
+I've tried my best to stay in contact, but it's tough with this shitty cell service. I understand the work you've posted so far,
+but what's missing? It all looks good to me, minus some testing. I'm using the work you've posted as a spring board, since 
+you figured out the general structure (I would have had no idea how to do the "Modified" "Exclusive" "Shared" and "invalid", and
+Im still not quite sure i get it.) From what i can tell, it's just systembus that needs finishing? Also, the channel ##cache-project 
+is empty.
+--6/13 10:19 PM Alex --
+Soo midnight is rapidly approaching. I've kind of hit a brick wall on my end, as I dont really understand the "requestOwnership" method.
+I've continued updating my work here on github, so what you see is what you get.I dont know really how to progress now,
+as communication seems to be shot. At 11:55pm, if ive not heard from you vitaliy, I'll
+turn this version in. I kind of assume you've made more progress than I. You've carried this project hard thus far
+and for that I am sorry. I've done what I could, but I struggle to understand how the multicore system works. 
+As for Tru and Andy, I'll do whatever you choose.
+
+-- 6/15 7:40 AM Vitaliy --
+I actually emailed him yesterday asking him if its fine to turn it in Monday night instead, and he said that that sounds good
+with him. I'm about to finish SystemBus, and otherwise the project will be done. So if you did turn it in, just let him know
+that that's not the final version and that I can turn in the final version on Canvas in a few hours.

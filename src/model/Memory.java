@@ -26,6 +26,7 @@ public class Memory {
         this.writeLatency = writeLatency;
     }
     /** Checks to make sure location is valid, then increments the reads counter.
+     * * If debug, also prints mem location to console.
      * @param location The location of the memory address to read from.
      */
     boolean read(int location) {
@@ -38,7 +39,8 @@ public class Memory {
             return false;
         }
     }
-    /** Checks to make sure location is valid, then increments the writess counter.
+    /** Checks to make sure location is valid, then increments the writes counter.\
+     * If debug, also prints mem location to console.
      * @param location The location of the memory address to write to.
      */
     boolean write(int location) {

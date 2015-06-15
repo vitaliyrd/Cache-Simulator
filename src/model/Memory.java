@@ -16,7 +16,7 @@ public class Memory {
     private int writeLatency;
     
     /**Constructor for a memory object.
-     * @param Size Integer to determine the size of the memory object.
+     * @param size Integer to determine the size of the memory object.
      * @param readLatency The latency penalty associated with reading. Written in nanoseconds.
      * @param writeLatency The latency penalty associated with writing. Written in nanoseconds.
      */
@@ -52,6 +52,15 @@ public class Memory {
             return false;
         }
     }
+
+    int getReadLatency() {
+        return readLatency;
+    }
+
+    int getWriteLatency() {
+        return readLatency;
+    }
+
     /** Returns the product of read latency and reads, summed with the product of writes and the write penalty.
      * @return The total time in ns.
      */

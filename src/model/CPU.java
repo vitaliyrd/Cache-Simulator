@@ -70,6 +70,14 @@ public class CPU {
         return time;
     }
 
+    public Cache getL1d() {
+        return l1d;
+    }
+
+    public Cache getL2() {
+        return l2;
+    }
+
     private int readInstruction(int address) {
         int time = 0;
 

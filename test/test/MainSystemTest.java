@@ -1,21 +1,17 @@
 package test;
 
-/*import model_old.CPU;
-import model_old.Instruction;
-import model_old.MainSystem;
-import org.junit.Test;*/
+/*import model_old.Instruction;
+import model_old.MainSystem;*/
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Test class for the CPU class.
- *
- * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
- * @version 1.0
+ * Created by Vitaliy on 6/12/15.
  */
-public class CPUTest {
-    /*private CPU cpu;
+public class MainSystemTest {
+    /*private MainSystem mainSystem;
 
     @Test
     public void test() {
@@ -48,31 +44,32 @@ public class CPUTest {
         configuration.put("2lm_readLatency", 250);
         configuration.put("2lm_writeLatency", 400);
 
-        cpu = new CPU(configuration, new MainSystem(configuration));
-        cpu.debug = true;
+        mainSystem = new MainSystem(configuration);
+        mainSystem.debugOn(true);
 
         Instruction i1 = new Instruction();
-        i1.instruction = 0b01111101011101110001101100111000;
+        i1.instruction = 1000 * 1024;
         i1.memoryAction = Instruction.MemoryAction.READ;
-        i1.data = 0b01111101011101110001111111111000;
-        cpu.execute(i1);    // Instruction and Data should miss.
+        i1.data = 13 * 1024;
+        mainSystem.execute(i1);    // Instruction and Data should miss.
 
         System.out.println();
 
-        cpu.execute(i1);    // Instruction and Data should hit.
+        mainSystem.execute(i1);    // Instruction and Data should hit.
 
         System.out.println();
 
         Instruction i2 = new Instruction();
-        i2.instruction = 0b1011010101001101010111101011010;
+        i2.instruction = 1023*1024 + 1;
         i2.memoryAction = Instruction.MemoryAction.WRITE;
-        i2.data = 0b10000111110110110101001101011111;
-        cpu.execute(i2);    // Instruction should miss and Data should be added to Caches without any misses (write operation).
+        i2.data = 1000;
+        mainSystem.execute(i2);    // Instruction should miss and Data should be added to Caches without any misses (write operation).
 
         System.out.println();
 
         Instruction i3 = new Instruction();
-        i3.instruction = 0b1110101101111010110010100100101;
-        cpu.execute(i3);    // Instruction should miss.
+        i3.instruction = 18*1024;
+        mainSystem.execute(i3);    // Instruction should miss.
     }*/
+
 }

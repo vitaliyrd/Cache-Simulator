@@ -10,11 +10,11 @@ public class SystemBus {
 
     public int issueReadRequest(int address, CPU caller) {
 
-        return 0;
+        return 100; //(Alex, unsure) The latency penalty for having to read from memory
     }
 
     public int issueWriteRequest(int address, CPU caller) {
-        return 0;
+        return 100; //(Alex, unsure) The latency penalty for having to write to memory
     }
 
     public void issueRequestForOwnership(int address, CPU caller) {

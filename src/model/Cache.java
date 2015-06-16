@@ -8,7 +8,7 @@ import java.util.Random;
  * The Cache is assumed to have symmetric (read == write) latencies.
  *
  * @author Alex Glass, Vitaliy Radchishin, Andy Tran, Tru Truong
- * @version 1.0 
+ * @version 1.0
  */
 public class Cache {
     /**

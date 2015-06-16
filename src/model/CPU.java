@@ -99,58 +99,60 @@ public class CPU {
     private int readInstruction(long address) {
         int time = 0;
 
-        // First try l1i
-        if(debug) debuggingOutput.print("l1i: ");
-        int index1 = l1i.locate(address);
-        if(index1 != -1){
-            time += l1i.getLatecy();
+        // First try the L1 instruction cache.
+        if(debug) debuggingOutput.print("L1i: ");
+        int indexL1 = l1i.locate(address);
+        if(indexL1 != -1){
+            time += l1i.getLatency();
             return time;
         }
         
-        // Next try l2
-        if(debug) debuggingOutput.print("l2: ");
-        int index2 = l2.locate(address);
-        if(index2 != -1) {
-            if(debug) debuggingOutput.print("l1i: ");
-            index1 = l1i.add(address);
-            l1i.markValid(index1);
+        // Next try the L2 cache.
+        if(debug) debuggingOutput.print("L2: ");
+        int indexL2 = l2.locate(address);
+        if(indexL2 != -1) {
+            // Copy the value to L1 and set it to the same MESI state as L2.
+            if(debug) debuggingOutput.print("L1i: ");
+            int newIndexL1 = l1i.add(address);
+            l1i.setState(newIndexL1, l2.getState(indexL2));
 
-            time += l2.getLatecy();
+            time += l2.getLatency();
             return time;
         }
 
-        // If all caches in CPU missed, request a read on the system bus.
-        if(debug) debuggingOutput.print("System read request placed");
-        time += system.issueReadRequest(address, this); //very clever
+        // Finally, request a read on the system bus.
+        if(debug) debuggingOutput.println("System read request placed");
+        time += system.issueReadRequest(address, this, true);
         return time;
     }
 
     private int readData(long address) {
         int time = 0;
 
-        // First try l1d
-        if(debug) debuggingOutput.print("l1d: ");
-        int index1 = l1d.locate(address);
-        if(index1 != -1){
-            time += l1d.getLatecy();
+        // First try the L1 data cache.
+        if(debug) debuggingOutput.print("L1d: ");
+        int indexL1 = l1d.locate(address);
+        if(indexL1 != -1){
+            time += l1d.getLatency();
             return time;
         }
 
-        // Next try l2
-        if(debug) debuggingOutput.print("l2: ");
-        int index2 = l2.locate(address);
-        if(index2 != -1) {
-            if(debug) debuggingOutput.print("l1d: ");
-            index1 = l1d.add(address);
-            l1d.markValid(index1);
+        // Next try the L2 cache.
+        if(debug) debuggingOutput.print("L2: ");
+        int indexL2 = l2.locate(address);
+        if(indexL2 != -1) {
+            // Copy the value to L1 and set it to the same MESI state as L2.
+            if(debug) debuggingOutput.print("L1d: ");
+            int newIndexL1 = l1d.add(address);
+            l1d.setState(newIndexL1, l2.getState(indexL2));
 
-            time += l2.getLatecy();
+            time += l2.getLatency();
             return time;
         }
 
-        // If all caches in CPU missed, request a read on the system bus.
-        if(debug) debuggingOutput.print("System read request placed");
-        time += system.issueReadRequest(address, this);
+        // Finally, request a read on the system bus.
+        if(debug) debuggingOutput.println("System read request placed");
+        time += system.issueReadRequest(address, this, false);
         return time;
     }
 
@@ -158,60 +160,52 @@ public class CPU {
         int time = 0;
 
         // If the previous data exists already in the cache:
-        if(debug) debuggingOutput.print("l1d: ");
-        int index1 = l1d.locate(address);   //Saving the index of the address as index1
-        time += l1d.getLatecy();            //Getting latency
-        int index2 = l2.locate(address);    //Saving the index of the shared address as index2
-        time += l2.getLatecy();             //Getting latency
+        if(debug) debuggingOutput.print("L1d: ");
+        int indexL1 = l1d.locate(address);
+        time += l1d.getLatency();
+        if(debug) debuggingOutput.print("L1d: ");
+        int indexL2 = l2.locate(address);
+        time += l2.getLatency();
 
-        if(index1 != -1) {                  //If valid index
-            time += l1d.getLatecy();        //Increment time again, since we first had to look for the data,
-                                            // and then write to the cache.
+        if(indexL1 != -1) {
+            time += l1d.getLatency();       // Increment time a second time, because a write is being performed.
 
-            if(l1d.isModified(index1)) {
+            if(l1d.isModified(indexL1)) {
                 // Update the value (no state change).
-            } else if(l1d.isExclusive(index1)) {
+            } else if(l1d.isExclusive(indexL1)) {
                 // Update the value.
-                l1d.markModified(index1);
+                l1d.setState(indexL1, CacheLine.MESI.Modified);
+                l2.setState(indexL2, CacheLine.MESI.Modified);
                 system.incrementModified(CacheLine.MESI.Exclusive); // MESI change: Exclusive -> Modified
-            } else if(l1d.isShared(index1)) {
+            } else if(l1d.isShared(indexL1)) {
                 time += system.issueRequestForOwnership(address, this);
                 // Update the value.
-                l1d.markModified(index1);
+                l1d.setState(indexL1, CacheLine.MESI.Modified);
+                l2.setState(indexL2, CacheLine.MESI.Modified);
                 system.incrementModified(CacheLine.MESI.Shared);    // MESI change: Shared -> Modified
-                l1d.markExclusive(index1);
             }
+        } else if(indexL2 != -1) {
+            time += l2.getLatency();    // Increment time a second time, because a write is being performed.
 
-            // Update state in l2.
-            l2.markExclusive(index2);
-            l2.markModified(index2);
-        } else if(index2 != -1) {           //Address not found in L1, so we look in L2
-            time += l2.getLatecy();
-
-            if(l2.isModified(index2)) {
+            if(l2.isModified(indexL2)) {
                 // Update the value (no state change).
-            } else if(l2.isExclusive(index2)) {
+            } else if(l2.isExclusive(indexL2)) {
                 // Update the value.
-                l2.markModified(index2);
+                l2.setState(indexL2, CacheLine.MESI.Modified);
                 system.incrementModified(CacheLine.MESI.Exclusive); // MESI change: Exclusive -> Modified
-            } else if(l2.isShared(index2)) {
+            } else if(l2.isShared(indexL2)) {
                 time += system.issueRequestForOwnership(address, this);
                 // Update the value.
-                l2.markModified(index2);
+                l2.setState(indexL2, CacheLine.MESI.Modified);
                 system.incrementModified(CacheLine.MESI.Shared);    // MESI change: Shared -> Modified
-                l2.markExclusive(index2);
             }
 
             // Bring the cache line in to l1d.
-            l1d.add(address); //Write back
-            l1d.markExclusive(index1);
-            l1d.markModified(index1);
+            int newIndexL1 = l1d.add(address);
+            time += l1d.getLatency();   // Increment time a second time, because a write is being performed.
+            l1d.setState(newIndexL1, CacheLine.MESI.Modified);
         } else {
             time += system.issueWriteRequest(address, this);
-            index1 = l1d.add(address);   // Write to l1d
-            index2 = l2.add(address);    // Write to l2
-            l1d.markModified(index1);
-            l2.markModified(index2);
         }
 
         return time;

@@ -50,7 +50,7 @@ public class Cache {
         this.system = system;
     }
 
-    public int getLatecy() {
+    public int getLatency() {
         int time = latency + extraLatency;
         extraLatency = 0;
         return time;
@@ -140,8 +140,7 @@ public class Cache {
             long tag = address >>> indexBits + offsetBits;  // The >>> prevents sign extension.
 
             if(cache[index].isModified()) {
-                extraLatency = system.issueWriteRequest(address, null);
-                cache[index].dirty = false;
+                extraLatency = system.saveModifiedCacheLine(address);
             }
             cache[index].tag = tag;
             cache[index].valid = true;
@@ -160,8 +159,7 @@ public class Cache {
             index = generator.nextInt(associativity);
 
             if(cache[index].isModified()) {
-                extraLatency = system.issueWriteRequest(address, null);
-                cache[(associativity * set) + index].dirty = false;
+                extraLatency = system.saveModifiedCacheLine(address);
             }
             cache[(associativity * set) + index].tag = tag;
             cache[(associativity * set) + index].valid = true;
@@ -239,5 +237,37 @@ public class Cache {
 
     public boolean isInvalid(int index) {
         return !cache[index].valid;
+    }
+
+    public void setState(int index, CacheLine.MESI state) {
+        if(state == CacheLine.MESI.Modified) {
+            cache[index].dirty = true;
+            cache[index].shared = false;
+            cache[index].valid = true;
+        } else if(state == CacheLine.MESI.Exclusive) {
+            cache[index].dirty = false;
+            cache[index].shared = false;
+            cache[index].valid = true;
+        } else if(state == CacheLine.MESI.Shared) {
+            cache[index].dirty = false;
+            cache[index].shared = true;
+            cache[index].valid = true;
+        } else if(state == CacheLine.MESI.Invalid) {
+            cache[index].dirty = false;
+            cache[index].shared = false;
+            cache[index].valid = false;
+        }
+    }
+
+    public CacheLine.MESI getState(int index) {
+        if(cache[index].dirty && !cache[index].shared && cache[index].valid) {
+            return CacheLine.MESI.Modified;
+        } else if(!cache[index].dirty && !cache[index].shared && cache[index].valid) {
+            return CacheLine.MESI.Exclusive;
+        } else if(!cache[index].dirty && cache[index].shared && cache[index].valid) {
+            return CacheLine.MESI.Shared;
+        } else {
+            return CacheLine.MESI.Invalid;
+        }
     }
 }

@@ -2,7 +2,6 @@ import com.opencsv.CSVReader;
 import model.Instruction;
 import model.SystemBus;
 
-import java.awt.print.Printable;
 import java.io.*;
 import java.util.*;
 
@@ -24,19 +23,20 @@ public class Main {
         try {
             output = new PrintStream(new File("output.txt"));
             config = readConfig(new File("config.csv"));
-            instructions = readTrace(new File("trace-2k.csv"));
+            instructions = readTrace(new File("trace-5k.csv"));
             bus = new SystemBus(config);
-            int execute = 0;
-            int cpu = 1;
-            for(Instruction i : instructions) {
-                if(execute == 50) {
-                    if(cpu == 1) cpu = 2;
-                    else if(cpu == 2) cpu = 1;
-                    execute = 0;
-                }
-                bus.execute(i, cpu);
-                execute++;
+
+            for(int i = 0; i < 50 && i < instructions.size(); i++) {
+                bus.execute(instructions.get(i), 1);
             }
+            for(int i = 50; i < instructions.size(); i++) {
+                bus.execute(instructions.get(i), 1);
+                bus.execute(instructions.get(i - 50), 2);
+            }
+            for(int i = instructions.size() - 50; i < instructions.size(); i++) {
+                bus.execute(instructions.get(i), 2);
+            }
+
             outputStatistics(bus.gatherStatistics(), bus.getStateChanges());
 
         } catch (IOException e) {
@@ -51,8 +51,7 @@ public class Main {
         String line[];
         while((line = reader.readNext()) != null) {
             Instruction instruction = new Instruction();
-            instruction.instruction = Long.parseLong(line[0], 16);
-
+            instruction.instruction = Long.parseLong(line[0]/*, 16*/);
             if(line.length == 1) {
                 list.add(instruction);
                 continue;
@@ -64,8 +63,9 @@ public class Main {
                 instruction.memoryAction = Instruction.MemoryAction.WRITE;
             }
             if(!line[2].equals("")) {
-                instruction.data = Long.parseLong(line[2], 16);
+                instruction.data = Long.parseLong(line[2]/*, 16*/);
             }
+
             list.add(instruction);
         }
 
@@ -100,9 +100,36 @@ public class Main {
         }
 
         output.println();
-        output.println("Average time per instruction: " + (float)(stats.get("CPU #1 Instruction Count")
-                + stats.get("CPU #2 Instruction Count"))/stats.get("Running Time"));
-        output.println("Total time: " + stats.get("Running Time"));
+        float avgInstr = (float)(stats.get("Running Time") / stats.get("CPU #1 Instruction Count"));
+        output.println("Average time per instruction: " + avgInstr + " ns");
+        output.println("Total time: " + stats.get("Running Time") + " ns");
+        output.println();
+
+        output.println("CPU 1:");
+        float cpu1L1H = (float)(stats.get("CPU #1 L1i Hits") + stats.get("CPU #1 L1d Hits"))
+                / (stats.get("CPU #1 L1i Accesses") + stats.get("CPU #1 L1d Accesses"));
+        float cpu1L1M = (float)(stats.get("CPU #1 L1i Misses") + stats.get("CPU #1 L1d Misses"))
+                / (stats.get("CPU #1 L1i Accesses") + stats.get("CPU #1 L1d Accesses"));
+        float cpu1L2H = (float)stats.get("CPU #1 L2 Hits") / stats.get("CPU #1 L2 Accesses");
+        float cpu1L2M = (float)stats.get("CPU #1 L2 Misses") / stats.get("CPU #1 L2 Accesses");
+        output.println("L1: " + cpu1L1H*100 + "% hit rate, " + cpu1L1M*100 + "% miss rate");
+        output.println("L2: " + cpu1L2H*100 + "% hit rate, " + cpu1L2M*100 + "% miss rate");
+        output.println();
+
+        output.println("CPU 2:");
+        float cpu2L1H = (float)(stats.get("CPU #2 L1i Hits") + stats.get("CPU #2 L1d Hits"))
+                / (stats.get("CPU #2 L1i Accesses") + stats.get("CPU #2 L1d Accesses"));
+        float cpu2L1M = (float)(stats.get("CPU #2 L1i Misses") + stats.get("CPU #2 L1d Misses"))
+                / (stats.get("CPU #2 L1i Accesses") + stats.get("CPU #2 L1d Accesses"));
+        float cpu2L2H = (float)stats.get("CPU #2 L2 Hits") / stats.get("CPU #2 L2 Accesses");
+        float cpu2L2M = (float)stats.get("CPU #2 L2 Misses") / stats.get("CPU #2 L2 Accesses");
+        output.println("L1: " + cpu2L1H*100 + "% hit rate, " + cpu2L1M*100 + "% miss rate");
+        output.println("L2: " + cpu2L2H*100 + "% hit rate, " + cpu2L2M*100 + "% miss rate");
+        output.println();
+
+        float l3H = (float)stats.get("L3 Hits") / stats.get("L3 Accesses");
+        float l3M = (float)stats.get("L3 Misses") / stats.get("L3 Accesses");
+        output.println("L3: " + l3H*100 + "% hit rate, " + l3M*100 + "% miss rate");
 
         output.println();
         output.println("State changes:");

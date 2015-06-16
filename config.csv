@@ -7,9 +7,9 @@ l3_latency,35
 lm1_size,16384
 lm1_readLatency,100
 lm1_writeLatency,100
-lm2_size,1048576
+lm2_size,1073741824
 lm2_readLatency,250
 lm2_writeLatency,400
 block_size,16
 associativity,32
-writeScheme,Write Back
+writeScheme,Write Through

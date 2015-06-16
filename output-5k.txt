@@ -1,0 +1,56 @@
+CPU Count: 2
+Running Time: 7728769
+CPU #1 L1i Misses: 8349
+CPU #1 L1i Hits: 9666
+CPU #1 L1i Accesses: 18015
+CPU #1 L1d Misses: 13946
+CPU #1 L1d Hits: 2545
+CPU #1 L1d Accesses: 16491
+CPU #1 L2 Misses: 18677
+CPU #1 L2 Hits: 8335
+CPU #1 L2 Accesses: 27012
+CPU #1 Instruction Count: 11000
+CPU #2 L1i Misses: 10523
+CPU #2 L1i Hits: 7492
+CPU #2 L1i Accesses: 18015
+CPU #2 L1d Misses: 16491
+CPU #2 L1d Hits: 0
+CPU #2 L1d Accesses: 16491
+CPU #2 L2 Misses: 27011
+CPU #2 L2 Hits: 2
+CPU #2 L2 Accesses: 27013
+CPU #2 Instruction Count: 11000
+L3 Misses: 18185
+L3 Hits: 8827
+L3 Accesses: 27012
+LM1 Reads: 34
+LM1 Writes: 26
+LM2 Reads: 5288
+LM2 Writes: 14438
+
+Average time per instruction: 702.0 ns
+Total time: 7728769 ns
+
+CPU 1:
+L1: 35.38805% hit rate, 64.61195% miss rate
+L2: 30.856657% hit rate, 69.14334% miss rate
+
+CPU 2:
+L1: 21.712166% hit rate, 78.287834% miss rate
+L2: 0.0074038426% hit rate, 99.9926% miss rate
+
+L3: 32.678066% hit rate, 67.32193% miss rate
+
+State changes:
+Modified to Exclusive: 0
+Modified to Shared: 0
+Modified to Invalid: 0
+Exclusive to Modified: 0
+Exclusive to Shared: 5163
+Exclusive to Invalid: 3672
+Shared to Modified: 0
+Shared to Exclusive: 0
+Shared to Invalid: 0
+Invalid to Modified: 0
+Invalid to Exclusive: 5322
+Invalid to Shared: 0

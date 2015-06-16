@@ -1,7 +1,6 @@
 package model;
 
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -117,110 +116,204 @@ public class SystemBus {
         return stateChanges;
     }
 
+    public int saveModifiedCacheLine(long address) {
+        return memWrite(address);
+    }
+
     /**
      * Response to a CPU's request for data.
      * Checks the cache contents of the other CPUs and the memories in the system.
      * @param address
      * @param caller
+     * @param instruction
      * @return
      */
-    public int issueReadRequest(long address, CPU caller) {
+    public int issueReadRequest(long address, CPU caller, boolean instruction) {
         int time = 0;
 
         CPU otherCPU;
-        if(caller == cpu1) {
-            otherCPU = cpu2;
+        Cache callerL1;
+        Cache otherL1;
+        if(caller == cpu1) otherCPU = cpu2;
+        else otherCPU = cpu1;
+
+        // If the read request is for an instruction, we need to use the L1i cache instead of the L2d cache.
+        if(instruction) {
+            callerL1 = caller.getL1i();
+            otherL1 = otherCPU.getL1i();
         } else {
-            otherCPU = cpu1;
+            callerL1 = caller.getL1d();
+            otherL1 = otherCPU.getL1d();
         }
 
-        // First check for any copies that exist in the other CPUs' caches.
-        int index = otherCPU.getL1d().locate(address);
-        time += otherCPU.getL1d().getLatecy();
-        if(index != -1) {
-            int newIndex1 = caller.getL1d().add(address);
+        // First check the L1 caches of the other CPU.
+        if(debug) debuggingOutput.println("Other CPU L1: ");
+        int indexL1 = otherL1.locate(address);
+        time += otherL1.getLatency();
+        if(indexL1 != -1) {
+            // Copy the data to the calling CPU's L1 and L2 caches.
+            if(debug) debuggingOutput.println("Calling CPU L1: ");
+            int newIndex1 = callerL1.add(address);
+            if(debug) debuggingOutput.println("Calling CPU L2: ");
             int newIndex2 = caller.getL2().add(address);
-            if(otherCPU.getL1d().isExclusive(index)) {
-                stateChanges[1][2]++;   // MESI Change: Exclusive -> Shared
-                otherCPU.getL1d().markShared(index);
-                caller.getL1d().markShared(newIndex1);
-                caller.getL2().markShared(newIndex2);
-            } else if(otherCPU.getL1d().isModified(index)) {
-                memWrite(address);
-                stateChanges[0][2]++;   // MESI Change: Modified -> Shared
-                otherCPU.getL1d().markShared(index);
-                otherCPU.getL1d().markNotModified(index);
-                otherCPU.getL2().markShared(otherCPU.getL2().locate(address));
-                otherCPU.getL2().markNotModified(otherCPU.getL2().locate(address));
-                caller.getL1d().markShared(newIndex1);
-                caller.getL1d().markNotModified(newIndex1);
-                caller.getL2().markShared(newIndex2);
-                caller.getL2().markNotModified(newIndex2);
-            }
-            return time;
-        }
-        index = otherCPU.getL2().locate(address);
-        time += otherCPU.getL2().getLatecy();
-        if(index != -1) {
-            int newIndex1 = caller.getL1d().add(address);
-            int newIndex2 = caller.getL2().add(address);
-            if(otherCPU.getL2().isExclusive(index)) {
-                stateChanges[1][2]++;   // MESI Change: Exclusive -> Shared
-                otherCPU.getL2().markShared(otherCPU.getL2().locate(address));
-                caller.getL1d().markShared(newIndex1);
-                caller.getL2().markShared(newIndex2);
-            } else if(otherCPU.getL2().isModified(index)) {
-                stateChanges[0][2]++;   // MESI Change: Modified -> Shared
+
+            // Set all copies of the data into the MESI shared state.
+            // If the other CPU's data was modified, we need to write it to memory before sharing it.
+            if(otherL1.isModified(indexL1)) {
                 time += memWrite(address);
-                otherCPU.getL2().markShared(otherCPU.getL2().locate(address));
-                otherCPU.getL2().markNotModified(otherCPU.getL2().locate(address));
-                caller.getL1d().markShared(newIndex1);
-                caller.getL1d().markNotModified(newIndex1);
-                caller.getL2().markShared(newIndex2);
-                caller.getL2().markNotModified(newIndex2);
+
+                stateChanges[0][2]++;   // MESI Change: Modified -> Shared
+
+                // Update other CPU's caches.
+                otherL1.setState(indexL1, CacheLine.MESI.Shared);
+                if(debug) debuggingOutput.println("Other CPU L2: ");
+                int indexL2 = otherCPU.getL2().locate(address);
+                otherCPU.getL2().setState(indexL2, CacheLine.MESI.Shared);
+
+                // Update calling CPU's caches.
+                callerL1.setState(newIndex1, CacheLine.MESI.Shared);
+                caller.getL2().setState(newIndex2, CacheLine.MESI.Shared);
+
+                // Update the L3 cache.
+                if(debug) debuggingOutput.println("L3: ");
+                int l3Index = l3.locate(address);
+                l3.setState(l3Index, CacheLine.MESI.Shared);
+            }
+            // If the other CPU's data was exclusive, it is now shared since it's being used in another processor.
+            else if(otherL1.isExclusive(indexL1)) {
+                stateChanges[1][2]++;   // MESI Change: Exclusive -> Shared
+
+                // Update other CPU's caches.
+                otherL1.setState(indexL1, CacheLine.MESI.Shared);
+                if(debug) debuggingOutput.println("Other CPU L2: ");
+                int indexL2 = otherCPU.getL2().add(address);
+                otherCPU.getL2().setState(indexL2, CacheLine.MESI.Shared);
+
+                // Update calling CPU's caches.
+                callerL1.setState(newIndex1, CacheLine.MESI.Shared);
+                caller.getL2().setState(newIndex2, CacheLine.MESI.Shared);
+
+                // Update the L3 Cache.
+                if(debug) debuggingOutput.println("L3: ");
+                int l3Index = l3.add(address);
+                l3.setState(l3Index, CacheLine.MESI.Shared);
+            }
+
+            return time;
+        }
+
+        // Next check the L2 cache of the other CPU.
+        int index2 = otherCPU.getL2().locate(address);
+        time += otherCPU.getL2().getLatency();
+        if(index2 != -1) {
+            // Copy the data to the calling CPU's L1 and L2 caches.
+            if(debug) debuggingOutput.println("Calling CPU L1: ");
+            int newIndex1 = callerL1.add(address);
+            if(debug) debuggingOutput.println("Calling CPU L2: ");
+            int newIndex2 = caller.getL2().add(address);
+
+            // Set all copies of the data into the MESI shared state.
+            // If the other CPU's data was modified, we need to write it to memory before sharing it.
+            if(otherCPU.getL2().isModified(index2)) {
+                time += memWrite(address);
+
+                stateChanges[0][2]++;   // MESI Change: Modified -> Shared
+
+                // Update other CPU's cache.
+                otherCPU.getL2().setState(index2, CacheLine.MESI.Shared);
+
+                // Update calling CPU's caches.
+                callerL1.setState(newIndex1, CacheLine.MESI.Shared);
+                caller.getL2().setState(newIndex2, CacheLine.MESI.Shared);
+
+                // Update the L3 cache.
+                if(debug) debuggingOutput.println("L3: ");
+                int l3Index = l3.locate(address);
+                l3.setState(l3Index, CacheLine.MESI.Shared);
+            }
+            // If the other CPU's data was exclusive, it is now shared since it's being used in another processor.
+            else if(otherCPU.getL2().isExclusive(index2)) {
+                stateChanges[1][2]++;   // MESI Change: Exclusive -> Shared
+
+                // Update other CPU's caches.
+                otherCPU.getL2().setState(index2, CacheLine.MESI.Shared);
+
+                // Update calling CPU's caches.
+                callerL1.setState(newIndex1, CacheLine.MESI.Shared);
+                caller.getL2().setState(newIndex2, CacheLine.MESI.Shared);
+
+                // Update the L3 cache.
+                if(debug) debuggingOutput.println("L3: ");
+                int l3Index = l3.add(address);
+                l3.setState(l3Index, CacheLine.MESI.Shared);
             }
             return time;
         }
 
-        // Next check the l3
-        time += l3.getLatecy();
+        // Next check the L3 cache.
+        time += l3.getLatency();
+        if(debug) debuggingOutput.println("L3 Cache: ");
         int index3 = l3.locate(address);
         if(index3 != -1) {
-            int newIndex1 = caller.getL1d().add(address);
+            // Copy the data to the calling CPU's L1 and L2 caches.
+            if(debug) debuggingOutput.println("Calling CPU L1: ");
+            int newIndex1 = callerL1.add(address);
+            if(debug) debuggingOutput.println("Calling CPU L2: ");
             int newIndex2 = caller.getL2().add(address);
+
+            // If the data has been modified, we need to write it to memory before making it exclusive.
+            // The data is exclusive because the calling CPU is the only one that has the data.
             if(l3.isModified(index3)) {
                 time += memWrite(address);
-                stateChanges[3][1]++;   // MESI Change: Invalid -> Exclusive
-                l3.markNotModified(otherCPU.getL2().locate(address));
-                caller.getL1d().markNotModified(newIndex1);
-                caller.getL2().markNotModified(newIndex2);
+
+                stateChanges[0][1]++;   // MESI Change: Modified -> Exclusive
             }
+
+            // Update the cache states.
+            l3.setState(index3, CacheLine.MESI.Exclusive);
+            callerL1.setState(newIndex1, CacheLine.MESI.Exclusive);
+            caller.getL2().setState(newIndex2, CacheLine.MESI.Exclusive);
             return time;
         }
 
-        // Next look in the lm1
+        // Next check the LM1 (DRAM).
         time += lm1.getReadLatency();
-        if(lm1.read(address)) {
+        if (lm1.read(address)) {
+            // Copy the data to the calling CPU's L1 and L2 caches.
+            if(debug) debuggingOutput.println("Calling CPU L1: ");
+            int newIndex1 = callerL1.add(address);
+            if(debug) debuggingOutput.println("Calling CPU L2: ");
+            int newIndex2 = caller.getL2().add(address);
+            if(debug) debuggingOutput.println("L3: ");
+            index3 = l3.add(address);
+
             stateChanges[3][1]++;   // MESI Change: Invalid -> Exclusive
-            index = caller.getL1d().add(address);
-            caller.getL1d().markExclusive(index);
-            index = caller.getL2().add(address);
-            caller.getL2().markExclusive(index);
-            index = l3.add(address);
-            l3.markExclusive(index);
+
+            // Update the cache states.
+            l3.setState(index3, CacheLine.MESI.Exclusive);
+            callerL1.setState(newIndex1, CacheLine.MESI.Exclusive);
+            caller.getL2().setState(newIndex2, CacheLine.MESI.Exclusive);
             return time;
         }
 
-        // Finally look in the lm2 (assumed to always be a hit)
+        // Finally, check the LM2 (PM).
         time += lm2.getReadLatency();
-        stateChanges[3][1]++;   // MESI Change: Invalid -> Exclusive
-        lm2.read(address);
-        index = caller.getL1d().add(address);
-        caller.getL1d().markExclusive(index);
-        index = caller.getL2().add(address);
-        caller.getL2().markExclusive(index);
-        index = l3.add(address);
-        l3.markExclusive(index);
+        if (lm2.read(address)) {
+            // Copy the data to the calling CPU's L1 and L2 caches.
+            if(debug) debuggingOutput.println("Calling CPU L1: ");
+            int newIndex1 = callerL1.add(address);
+            if(debug) debuggingOutput.println("Calling CPU L2: ");
+            int newIndex2 = caller.getL2().add(address);
+            if(debug) debuggingOutput.println("L3: ");
+            index3 = l3.add(address);
+
+            stateChanges[3][1]++;   // MESI Change: Invalid -> Exclusive
+
+            // Update the cache states.
+            l3.setState(index3, CacheLine.MESI.Exclusive);
+            callerL1.setState(newIndex1, CacheLine.MESI.Exclusive);
+            caller.getL2().setState(newIndex2, CacheLine.MESI.Exclusive);
+        }
         return time;
     }
 
@@ -230,45 +323,115 @@ public class SystemBus {
         CPU otherCPU;
         if(caller == cpu1) {
             otherCPU = cpu2;
-        } else if(caller == cpu2) {
-            otherCPU = cpu1;
         } else {
-            lm1.write(address);
-            time += lm1.getWriteLatency();
-            lm2.write(address);
-            time += lm2.getWriteLatency();
+            otherCPU = cpu1;
+        }
+
+        // First check the L1 cache of the other CPU for an occurrence of the address being written to.
+        int index1 = otherCPU.getL1d().locate(address);
+        int index2 = otherCPU.getL2().locate(address);
+        time += otherCPU.getL1d().getLatency();
+        time += otherCPU.getL2().getLatency();
+        if(index1 != -1) {
+            // If the address in the other CPU is modified, it must be saved to main memory before the calling CPU
+            // makes it's write, to ensure memory consistency. Also, the address in the other CPU must be invalidated.
+            if(otherCPU.getL1d().isModified(index1)) {
+                time += memWrite(address);
+
+                otherCPU.getL1d().setState(index1, CacheLine.MESI.Invalid);
+                otherCPU.getL2().setState(index2, CacheLine.MESI.Invalid);
+
+                stateChanges[0][3]++;   // MESI Change: Modified -> Invalid
+            } else {
+                otherCPU.getL1d().setState(index1, CacheLine.MESI.Invalid);
+                if(index2 != -1) otherCPU.getL2().setState(index2, CacheLine.MESI.Invalid);
+
+                if(otherCPU.getL1d().isExclusive(index1)) stateChanges[1][3]++;   // MESI Change: Exclusive -> Invalid
+                else if(otherCPU.getL1d().isShared(index1)) stateChanges[2][3]++; // MESI Change: Shared -> Invalid
+            }
+
+            // Add the modified value to the calling CPU's cache.
+            int newIndex1 = caller.getL1d().add(address);
+            time+= caller.getL1d().getLatency();
+            int newIndex2 = caller.getL2().add(address);
+            time+= caller.getL2().getLatency();
+            caller.getL1d().setState(newIndex1, CacheLine.MESI.Modified);
+            caller.getL2().setState(newIndex2, CacheLine.MESI.Modified);
+
+            // Also need to update the state in L3.
+            int index3 = l3.add(address);
+            time += l3.getLatency();
+            l3.setState(index3, CacheLine.MESI.Modified);
+
             return time;
         }
 
-        int index1 = otherCPU.getL1d().locate(address);
-        int index2 = otherCPU.getL2().locate(address);
-        time += otherCPU.getL1d().getLatecy();
-        if(index1 != -1) {
-            if(otherCPU.getL1d().isModified(index1)) {
-                memWrite(address);
-                otherCPU.getL1d().markInvalid(index1);
-                otherCPU.getL2().markInvalid(index2);
-                stateChanges[0][3]++;   // MESI Change: Modified -> Invalid
-            } else {
-                otherCPU.getL1d().markInvalid(index1);
-                otherCPU.getL2().markInvalid(index2);
-                if(otherCPU.getL1d().isExclusive(index1)) stateChanges[1][3]++;   // MESI Change: Exclusive -> Invalid
-                else if(otherCPU.getL1d().isShared(index1)) stateChanges[2][3]++;   // MESI Change: Shared -> Invalid
-            }
-        }
-        time += otherCPU.getL2().getLatecy();
+        // Next check the L2 cache of the other CPU for an occurrence of the address being written to.
         if(index2 != -1) {
+            // If the address in the other CPU is modified, it must be saved to main memory before the calling CPU
+            // makes it's write, to ensure memory consistency. Also, the address in the other CPU must be invalidated.
             if(otherCPU.getL2().isModified(index2)) {
-                memWrite(address);
-                otherCPU.getL2().markInvalid(index2);
+                time += memWrite(address);
+                otherCPU.getL2().setState(index2, CacheLine.MESI.Invalid);
                 stateChanges[0][3]++;   // MESI Change: Modified -> Invalid
             } else {
-                otherCPU.getL2().markInvalid(index2);
+                otherCPU.getL2().setState(index2, CacheLine.MESI.Invalid);
+
                 if(otherCPU.getL2().isExclusive(index2)) stateChanges[1][3]++;   // MESI Change: Exclusive -> Invalid
-                else if(otherCPU.getL2().isShared(index2)) stateChanges[2][3]++;   // MESI Change: Shared -> Invalid
+                else if(otherCPU.getL2().isShared(index2)) stateChanges[2][3]++; // MESI Change: Shared -> Invalid
             }
+
+            // Add the modified value to the calling CPU's cache.
+            int newIndex1 = caller.getL1d().add(address);
+            time+= caller.getL1d().getLatency();
+            int newIndex2 = caller.getL2().add(address);
+            time+= caller.getL2().getLatency();
+            caller.getL1d().setState(newIndex1, CacheLine.MESI.Modified);
+            caller.getL2().setState(newIndex2, CacheLine.MESI.Modified);
+
+            // Also need to update the state in L3.
+            int index3 = l3.add(address);
+            time += l3.getLatency();
+            l3.setState(index3, CacheLine.MESI.Modified);
+
+            return time;
         }
 
+        // Next check the L3 cache for an occurrence of the address being written to.
+        int index3 = l3.locate(address);
+        time += l3.getLatency();
+        if(index3 != -1) {
+            // If the address in the L3 is modified, it must be saved to main memory before the calling CPU
+            // makes it's write, to ensure memory consistency.
+            if(l3.isModified(index3)) {
+                time += memWrite(address);
+            } else if(l3.isExclusive(index3))  {
+                l3.setState(index3, CacheLine.MESI.Modified);
+                stateChanges[1][3]++;   // MESI Change: Exclusive -> Invalid
+            }
+
+            // Add the modified value to the calling CPU's cache.
+            int newIndex1 = caller.getL1d().add(address);
+            time+= caller.getL1d().getLatency();
+            int newIndex2 = caller.getL2().add(address);
+            time+= caller.getL2().getLatency();
+            caller.getL1d().setState(newIndex1, CacheLine.MESI.Modified);
+            caller.getL2().setState(newIndex2, CacheLine.MESI.Modified);
+
+            return time;
+        }
+
+        // Finally write to memory and update all caches.
+        time += memWrite(address);
+        index1 = caller.getL1d().add(address);
+        time += caller.getL1d().getLatency();
+        caller.getL1d().setState(index1, CacheLine.MESI.Exclusive);
+        index2 = caller.getL2().add(address);
+        time += caller.getL2().getLatency();
+        caller.getL2().setState(index2, CacheLine.MESI.Exclusive);
+        index3 = l3.add(address);
+        time += l3.getLatency();
+        l3.setState(index3, CacheLine.MESI.Exclusive);
         return time;
     }
 
@@ -293,18 +456,18 @@ public class SystemBus {
         int index2 = otherCPU.getL2().locate(address);
 
         if(index1i != -1) {
-            time += otherCPU.getL1i().getLatecy();
-            otherCPU.getL1i().markInvalid(index1i);
+            time += otherCPU.getL1i().getLatency();
+            otherCPU.getL1i().setState(index1i, CacheLine.MESI.Invalid);
             stateChanges[2][3]++;   // MESI Change: Shared -> Invalid
         }
         if(index1d != -1) {
-            time += otherCPU.getL1d().getLatecy();
-            otherCPU.getL1d().markInvalid(index1d);
+            time += otherCPU.getL1d().getLatency();
+            otherCPU.getL1d().setState(index1d, CacheLine.MESI.Invalid);
             stateChanges[2][3]++;   // MESI Change: Shared -> Invalid
         }
         if(index2 != -1) {
-            time += otherCPU.getL2().getLatecy();
-            otherCPU.getL2().markInvalid(index2);
+            time += otherCPU.getL2().getLatency();
+            otherCPU.getL2().setState(index2, CacheLine.MESI.Invalid);
             stateChanges[2][3]++;   // MESI Change: Shared -> Invalid
         }
 
@@ -322,7 +485,6 @@ public class SystemBus {
         }
 
         // Otherwise, the caches have already been updated.
-
         return time;
     }
 }
